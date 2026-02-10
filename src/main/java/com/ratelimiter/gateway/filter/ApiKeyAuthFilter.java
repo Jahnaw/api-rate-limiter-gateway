@@ -2,6 +2,7 @@ package com.ratelimiter.gateway.filter;
 
 import com.ratelimiter.gateway.model.Client;
 import com.ratelimiter.gateway.repository.ClientRepository;
+import com.ratelimiter.gateway.service.RateLimiterService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,18 +19,17 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     private static final String API_KEY_HEADER = "X-API-KEY";
 
     private final ClientRepository clientRepository;
+    private final RateLimiterService rateLimiterService;
 
-    public ApiKeyAuthFilter(ClientRepository clientRepository) {
+    public ApiKeyAuthFilter(ClientRepository clientRepository,
+                            RateLimiterService rateLimiterService) {
         this.clientRepository = clientRepository;
+        this.rateLimiterService = rateLimiterService;
     }
 
-    /**
-     * This method tells Spring WHEN to SKIP this filter completely.
-     */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        return path.equals("/clients/register");
+        return request.getRequestURI().equals("/clients/register");
     }
 
     @Override
@@ -55,7 +55,21 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        // API key valid → continue request
+        Client client = clientOpt.get();
+
+        boolean allowed = rateLimiterService.isAllowed(
+                client.getId().toString(),
+                client.getRateLimit(),
+                client.getWindowSeconds()
+        );
+
+        if (!allowed) {
+            response.setStatus(429);
+            response.getWriter().write("Rate limit exceeded");
+            return;
+        }
+
+        // Passed auth + rate limit
         filterChain.doFilter(request, response);
     }
 }
