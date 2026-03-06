@@ -3,10 +3,11 @@ package com.ratelimiter.gateway.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "clients")
-public class Client {
+public class Client implements Serializable {
 
     @Id
     @GeneratedValue
@@ -27,6 +28,10 @@ public class Client {
     @Column(nullable = false)
     private int windowSeconds;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RateLimitAlgorithm algorithm = RateLimitAlgorithm.TOKEN_BUCKET;
+
     @Column(nullable = false)
     private boolean active = true;
 
@@ -35,10 +40,6 @@ public class Client {
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
-
-    /* =======================
-       JPA Lifecycle Callbacks
-       ======================= */
 
     @PrePersist
     protected void onCreate() {
@@ -50,10 +51,6 @@ public class Client {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-
-    /* =======================
-       Getters and Setters
-       ======================= */
 
     public UUID getId() {
         return id;
@@ -101,6 +98,14 @@ public class Client {
 
     public void setWindowSeconds(int windowSeconds) {
         this.windowSeconds = windowSeconds;
+    }
+
+    public RateLimitAlgorithm getAlgorithm() {
+        return algorithm;
+    }
+
+    public void setAlgorithm(RateLimitAlgorithm algorithm) {
+        this.algorithm = algorithm;
     }
 
     public boolean isActive() {

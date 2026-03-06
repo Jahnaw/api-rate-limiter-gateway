@@ -22,7 +22,9 @@ public class ClientController {
     public ClientRegistrationResponse register(
             @RequestBody ClientRegistrationRequest request
     ) {
+
         Client client = clientService.register(request);
+
         return new ClientRegistrationResponse(
                 client.getId(),
                 client.getApiKey()

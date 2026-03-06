@@ -1,11 +1,14 @@
 package com.ratelimiter.gateway.dto;
 
+import com.ratelimiter.gateway.model.RateLimitAlgorithm;
+
 public class ClientRegistrationRequest {
 
     private String name;
     private String backendBaseUrl;
     private int rateLimit;
     private int windowSeconds;
+    private RateLimitAlgorithm algorithm;
 
     public String getName() {
         return name;
@@ -37,5 +40,13 @@ public class ClientRegistrationRequest {
 
     public void setWindowSeconds(int windowSeconds) {
         this.windowSeconds = windowSeconds;
+    }
+
+    public RateLimitAlgorithm getAlgorithm() {
+        return algorithm;
+    }
+
+    public void setAlgorithm(RateLimitAlgorithm algorithm) {
+        this.algorithm = algorithm;
     }
 }
